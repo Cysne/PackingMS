@@ -1,0 +1,55 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+.vscode/
+
+# Build Results
+[Dd]ebug/
+[Rr]elease/
+
+# NuGet
+*.nupkg
+# NuGet Packages
+**/packages/*
+# The packages folder can be ignored because of Package Restore
+**/packages.config
+
+# Entity Framework
+Migrations/*Snapshot.cs
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Rider
+.idea/
+*.sln.iml
+
+# Test Results
+TestResults/
+
+# Docker
+*.pid
+
+# Others
+*.swp
+*.bak
+*.tmp
+*.orig
+*.rej
+
+# User secrets
+secrets.json
+
+# Local environment
+appsettings.Development.json
