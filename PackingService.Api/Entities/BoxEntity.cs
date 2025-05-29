@@ -3,7 +3,7 @@ namespace PackingService.Api.Entities
 {
     public class BoxEntity
     {
-        public int Id { get; set; }
+        public int BoxId { get; set; }
         public string? BoxType { get; set; }
         public decimal Height { get; set; }
         public decimal Width { get; set; }
