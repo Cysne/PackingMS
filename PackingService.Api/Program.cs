@@ -37,6 +37,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<PackingDbContext>();
     db.Database.Migrate();
+    db.SeedData();
 }
 
 
