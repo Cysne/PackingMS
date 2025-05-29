@@ -6,11 +6,11 @@ services:
     container_name: packing_sql
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=Your_password123
+      - SA_PASSWORD=Password123!
     ports:
       - "1433:1433"
     healthcheck:
-      test: ["CMD", "sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Your_password123", "-Q", "SELECT 1"]
+      test: ["CMD", "sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Password123!", "-Q", "SELECT 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
     container_name: packing_api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=PackingDb;User Id=sa;Password=Your_password123;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=PackingDb;User Id=sa;Password=Password123!;
     ports:
       - "8080:8080"
     depends_on:
