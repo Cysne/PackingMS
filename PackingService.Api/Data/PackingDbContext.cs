@@ -19,11 +19,11 @@ namespace PackingService.Api.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<BoxEntity>().HasKey(b => b.Id);
+            modelBuilder.Entity<BoxEntity>().HasKey(b => b.BoxId);
 
-            modelBuilder.Entity<ProductEntity>().HasKey(p => p.Id);
+            modelBuilder.Entity<ProductEntity>().HasKey(p => p.ProductId);
 
-            modelBuilder.Entity<OrderEntity>().HasKey(o => o.Id);
+            modelBuilder.Entity<OrderEntity>().HasKey(o => o.OrderId);
             modelBuilder.Entity<OrderEntity>()
                 .HasMany(o => o.OrderItems)
                 .WithOne(oi => oi.Order)
@@ -33,13 +33,13 @@ namespace PackingService.Api.Data
                 .WithOne(ob => ob.Order)
                 .HasForeignKey(ob => ob.OrderId);
 
-            modelBuilder.Entity<OrderItemEntity>().HasKey(oi => oi.Id);
+            modelBuilder.Entity<OrderItemEntity>().HasKey(oi => oi.OrderItemId);
             modelBuilder.Entity<OrderItemEntity>()
                 .HasOne(oi => oi.Product)
                 .WithMany()
                 .HasForeignKey(oi => oi.ProductId);
 
-            modelBuilder.Entity<OrderBoxEntity>().HasKey(ob => ob.Id);
+            modelBuilder.Entity<OrderBoxEntity>().HasKey(ob => new { ob.OrderId, ob.BoxId });
             modelBuilder.Entity<OrderBoxEntity>()
                 .HasOne(ob => ob.Order)
                 .WithMany(o => o.OrderBoxes)
@@ -48,6 +48,45 @@ namespace PackingService.Api.Data
                 .HasOne(ob => ob.Box)
                 .WithMany(b => b.OrderBoxes)
                 .HasForeignKey(ob => ob.BoxId);
+        }
+
+        public void SeedData()
+        {
+            if (!Boxes.Any())
+            {
+                Boxes.AddRange(new[]
+                {
+                    new BoxEntity { BoxType = "Caixa 1", Height = 30m, Width = 40m, Length = 80m },
+                    new BoxEntity { BoxType = "Caixa 2", Height = 80m, Width = 50m, Length = 40m },
+                    new BoxEntity { BoxType = "Caixa 3", Height = 50m, Width = 80m, Length = 60m }
+                });
+                SaveChanges();
+            }
+
+            if (!Products.Any())
+            {
+                Products.AddRange(new[]
+                {
+                    new ProductEntity { Name = "Produto A", Height = 10m, Width = 10m, Length = 10m },
+                    new ProductEntity { Name = "Produto B", Height = 20m, Width = 15m, Length = 5m }
+                });
+                SaveChanges();
+            }
+
+            if (!Orders.Any())
+            {
+                var productA = Products.First();
+                var order = new OrderEntity
+                {
+                    OrderDate = DateTime.UtcNow,
+                    OrderItems = new List<OrderItemEntity>
+                    {
+                        new OrderItemEntity { ProductId = productA.ProductId, Quantity = 2 }
+                    }
+                };
+                Orders.Add(order);
+                SaveChanges();
+            }
         }
     }
 }
