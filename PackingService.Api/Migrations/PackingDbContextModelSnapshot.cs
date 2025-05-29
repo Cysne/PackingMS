@@ -24,11 +24,11 @@ namespace PackingService.Api.Migrations
 
             modelBuilder.Entity("PackingService.Api.Entities.BoxEntity", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("BoxId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BoxId"));
 
                     b.Property<string>("BoxType")
                         .HasColumnType("nvarchar(max)");
@@ -42,18 +42,15 @@ namespace PackingService.Api.Migrations
                     b.Property<decimal>("Width")
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("Id");
+                    b.HasKey("BoxId");
 
                     b.ToTable("Boxes");
                 });
 
             modelBuilder.Entity("PackingService.Api.Entities.OrderBoxEntity", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("OrderId")
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("BoxId")
                         .HasColumnType("int");
@@ -61,41 +58,36 @@ namespace PackingService.Api.Migrations
                     b.Property<string>("Observation")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
+                    b.HasKey("OrderId", "BoxId");
 
                     b.HasIndex("BoxId");
-
-                    b.HasIndex("OrderId");
 
                     b.ToTable("OrderBoxes");
                 });
 
             modelBuilder.Entity("PackingService.Api.Entities.OrderEntity", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("OrderId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("Id");
+                    b.HasKey("OrderId");
 
                     b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("PackingService.Api.Entities.OrderItemEntity", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("OrderItemId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderItemId"));
 
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
@@ -106,7 +98,7 @@ namespace PackingService.Api.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("OrderItemId");
 
                     b.HasIndex("OrderId");
 
@@ -117,11 +109,11 @@ namespace PackingService.Api.Migrations
 
             modelBuilder.Entity("PackingService.Api.Entities.ProductEntity", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ProductId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
 
                     b.Property<decimal>("Height")
                         .HasColumnType("decimal(18,2)");
@@ -135,7 +127,7 @@ namespace PackingService.Api.Migrations
                     b.Property<decimal>("Width")
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("Id");
+                    b.HasKey("ProductId");
 
                     b.ToTable("Products");
                 });
