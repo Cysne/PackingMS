@@ -1,3 +1,4 @@
+using Serilog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using PackingService.Api.Data;
@@ -6,7 +7,15 @@ using PackingService.Api.Services;
 using PackingService.Api.Strategies;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
+
+// Configuração do Serilog para salvar logs em PackingService.Api/logs
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.File("../logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog();
 
 
 builder.Services.AddDbContext<PackingDbContext>(opts =>
@@ -31,6 +40,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Middleware para tratar as exceções da api
+app.UseMiddleware<PackingService.Api.Middleware.ExceptionMiddleware>();
 
 
 using (var scope = app.Services.CreateScope())
