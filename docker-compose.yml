@@ -1,30 +1,27 @@
-version: '3.9'
+#version: '3.9'
 
 services:
-  sqlserver:
+  db:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: packing_sql
+    container_name: sqlserver
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=Password123!
+      MS_PASSWORD: "P4ssword@#2025"
+      ACCEPT_EULA: "Y"
     ports:
       - "1433:1433"
     healthcheck:
-      test: ["CMD", "sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Password123!", "-Q", "SELECT 1"]
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U MS -P P4ssword@#2025 -Q 'SELECT 1' || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-
-  packingservice:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: packing_api
+      retries: 10
+  api:
+    build: .
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=PackingDb;User Id=sa;Password=Password123!;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=PackingDb;User=MS;Password=P4ssword@#2025;
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "sleep 20 && dotnet ef database update --no-build --project PackingService.Api/PackingService.Api.csproj && dotnet PackingService.Api.dll"
     ports:
       - "8080:8080"
-    depends_on:
-      sqlserver:
-        condition: service_healthy
