@@ -3,7 +3,7 @@ namespace PackingService.Api.Entities
 {
     public class OrderBoxEntity
     {
-        public int Id { get; set; }
+        
         public int OrderId { get; set; }
         public int BoxId { get; set; }
         public string? Observation { get; set; }
