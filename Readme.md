@@ -504,13 +504,6 @@ flowchart TD
     R --> S[Cliente recebe resultado]
 
     F --> S
-
-    style A fill:#e1f5fe
-    style B fill:#f3e5f5
-    style C fill:#fff3e0
-    style E fill:#e8f5e8
-    style J fill:#fff8e1
-    style S fill:#e1f5fe
 ```
 
 ### Fluxo de Autenticação JWT
@@ -546,11 +539,6 @@ flowchart TD
     S -->|Não| U[Retornar 401]
 
     T --> V[PackingController]
-
-    style A fill:#e1f5fe
-    style I fill:#fff3e0
-    style Q fill:#ffebee
-    style V fill:#e8f5e8
 ```
 
 ### Comunicação com Banco de Dados
@@ -696,53 +684,68 @@ stateDiagram-v2
 graph TB
     subgraph "Camada de Apresentação"
         A[PackingController]
+        A1[AuthController]
         B[Swagger UI]
         C[HTTP Endpoints]
     end
 
     subgraph "Camada de Aplicação"
         D[PackingService]
+        D1[AuthService]
         E[DTOs]
-        F[Middleware]
+        F[JWT Middleware]
+        F1[Exception Middleware]
     end
 
     subgraph "Camada de Domínio"
         G[IPackingStrategy]
+        G1[IAuthService]
         H[FirstFitDecreasingStrategy]
         I[Algoritmos de Empacotamento]
+        I1[JWT Token Generation]
+        I2[BCrypt Password Hashing]
     end
 
     subgraph "Camada de Persistência"
         J[PackingDbContext]
         K[Entity Framework Core]
         L[Migrations]
+        L1[User Entity]
+        L2[Order Entities]
     end
 
     subgraph "Camada de Dados"
         M[SQL Server]
         N[Tables]
+        N1[Users Table]
+        N2[Orders/Products Tables]
         O[Indexes]
     end
 
     A --> D
+    A1 --> D1
     B --> C
     C --> A
+    C --> A1
     D --> E
     D --> G
+    D1 --> G1
     G --> H
     H --> I
+    D1 --> I1
+    D1 --> I2
+    F --> A
+    F --> A1
+    F1 --> F
     D --> J
+    D1 --> J
     J --> K
     K --> L
     K --> M
     M --> N
+    N --> N1
+    N --> N2
     N --> O
-
-    style A fill:#e3f2fd
-    style D fill:#f1f8e9
-    style G fill:#fff3e0
-    style J fill:#fce4ec
-    style M fill:#f3e5f5
 ```
 
 ## Recursos Adicionais
