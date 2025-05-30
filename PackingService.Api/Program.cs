@@ -8,7 +8,6 @@ using PackingService.Api.Strategies;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 
-// Configuração do Serilog para salvar logs em PackingService.Api/logs
 Log.Logger = new LoggerConfiguration()
     .WriteTo.File("../logs/log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
