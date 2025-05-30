@@ -1,34 +1,58 @@
-# PackingService API - Sistema de Empacotamento Inteligente
+# PackingService API - Sistema de Empacotamento Inteligente com Autenticação JWT
 
 ## Descrição
 
-O PackingService API é um microserviço desenvolvido em .NET 9 que automatiza o processo de empacotamento de pedidos. A aplicação recebe uma lista de pedidos com produtos e suas dimensões, calcula a melhor forma de acomodá-los nas caixas disponíveis e persiste todas as informações no banco de dados SQL Server.
+O PackingService API é um microserviço desenvolvido em .NET 8 que automatiza o processo de empacotamento de pedidos com sistema de autenticação JWT integrado. A aplicação recebe uma lista de pedidos com produtos e suas dimensões, calcula a melhor forma de acomodá-los nas caixas disponíveis e persiste todas as informações no banco de dados SQL Server.
 
 ## Funcionalidades
 
+- ✅ **Autenticação JWT**: Sistema completo de registro, login e autorização
 - ✅ **Empacotamento Inteligente**: Algoritmo First-Fit Decreasing para otimizar o uso das caixas
-- ✅ **Persistência Completa**: Salva pedidos, produtos, itens e caixas utilizadas no banco de dados
-- ✅ **API RESTful**: Endpoint documentado com Swagger para fácil integração
+- ✅ **Persistência Completa**: Salva pedidos, produtos, itens, caixas e usuários no banco de dados
+- ✅ **API RESTful**: Endpoints documentados com Swagger para fácil integração
+- ✅ **Gerenciamento de Usuários**: Sistema de cadastro e autenticação de usuários
 - ✅ **Gerenciamento de Produtos**: Evita duplicação de produtos no banco
 - ✅ **Rastreabilidade**: Cada pedido retorna um ID único para consultas futuras
 - ✅ **Containerização**: Aplicação totalmente dockerizada
 - ✅ **Testes Automatizados**: Suite completa de testes unitários e de integração
+- ✅ **Documentação Swagger com JWT**: Interface gráfica para testar endpoints autenticados
+
+## 🔐 Sistema de Autenticação
+
+### Recursos de Segurança
+
+- **JWT (JSON Web Tokens)** para autenticação stateless
+- **BCrypt** para hash seguro de senhas
+- **Bearer Token** authentication
+- **Proteção de endpoints** sensíveis
+- **Swagger integrado** com autenticação
+- **Tokens com expiração** configurável (24h por padrão)
+
+### Endpoints de Autenticação
+
+| Endpoint                   | Método | Descrição               | Autenticação         |
+| -------------------------- | ------ | ----------------------- | -------------------- |
+| `/api/Auth/register`       | POST   | Registrar novo usuário  | Não requerida        |
+| `/api/Auth/login`          | POST   | Fazer login             | Não requerida        |
+| `/api/Packing/pack-orders` | POST   | Processar empacotamento | ✅ **JWT Requerido** |
 
 ## Caixas Disponíveis
 
-| Tipo        | Dimensões (A x L x C) | Volume     |
-| ----------- | --------------------- | ---------- |
-| **Caixa P** | 10 x 15 x 20 cm       | 3.000 cm³  |
-| **Caixa M** | 15 x 20 x 25 cm       | 7.500 cm³  |
-| **Caixa G** | 20 x 25 x 30 cm       | 15.000 cm³ |
+| Tipo        | Dimensões (A x L x C) | Volume      |
+| ----------- | --------------------- | ----------- |
+| **Caixa 1** | 30 x 40 x 80 cm       | 96.000 cm³  |
+| **Caixa 2** | 80 x 50 x 40 cm       | 160.000 cm³ |
+| **Caixa 3** | 50 x 80 x 60 cm       | 240.000 cm³ |
 
 ## Tecnologias Utilizadas
 
-- **.NET 9** - Framework principal
+- **.NET 8** - Framework principal
 - **SQL Server 2022** - Banco de dados
 - **Entity Framework Core** - ORM para acesso aos dados
+- **JWT Bearer Authentication** - Sistema de autenticação
+- **BCrypt.Net** - Hash seguro de senhas
 - **Docker & Docker Compose** - Containerização
-- **Swagger/OpenAPI** - Documentação da API
+- **Swagger/OpenAPI** - Documentação da API com autenticação
 - **xUnit** - Framework de testes
 - **FluentAssertions** - Assertions para testes
 
@@ -49,83 +73,194 @@ Antes de executar a aplicação, certifique-se de ter:
 - **Visual Studio 2022** ou **VS Code**
 - **SQL Server Management Studio (SSMS)** - para acessar o banco diretamente
 
-## Como Executar a Aplicação
+## 🚀 Início Rápido
 
-### 1. Clone o Repositório
+### 1. Clone e Execute
 
 ```bash
-git clone <seu-repositorio>
+# Clone o repositório
+git clone <https://github.com/Cysne/PackingService.Api.git>
 cd PackingService.Api
-```
 
-### 2. Inicie os Containers
-
-```bash
+# Execute com Docker
 docker-compose up --build
 ```
 
-### 3. Aguarde a Inicialização
+### 2. Acesse a Aplicação
 
-O processo criará automaticamente:
-
-- Container SQL Server na porta `14330`
-- Container da API na porta `5000`
-- Banco de dados `PackingDb` com todas as tabelas
-- Dados de seed (caixas disponíveis e produtos de exemplo)
-
-### 4. Verifique se está Funcionando
-
-- **API**: http://localhost:5000
 - **Swagger UI**: http://localhost:5000/swagger
+- **API Base URL**: http://localhost:5000
+- **SQL Server**: localhost:14330
 
-## Como Usar a API
+### 3. Teste a Autenticação
 
-### Endpoint Principal
+#### 3.1. Registrar um novo usuário
 
+```bash
+curl -X POST "http://localhost:5000/api/Auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "email": "admin@teste.com",
+    "password": "123456"
+  }'
 ```
-POST /api/packing/pack-orders
-Content-Type: application/json
+
+#### 3.2. Fazer login
+
+```bash
+curl -X POST "http://localhost:5000/api/Auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "123456"
+  }'
 ```
 
-### Exemplo de Requisição
+#### 3.3. Usar o token retornado
 
-```json
-[
-  {
+Copie o `token` da resposta do login e use nos próximos endpoints.
+
+## 🔑 Como Autenticar
+
+### Via Swagger (Recomendado)
+
+1. **Acesse**: http://localhost:5000/swagger
+2. **Registre-se ou faça login**: Use os endpoints `/api/Auth/register` ou `/api/Auth/login`
+3. **Copie o token**: Da resposta JSON, copie apenas o valor do campo `token`
+4. **Clique em "Authorize"**: Botão verde no topo da página do Swagger
+5. **Cole apenas o token**: **NÃO inclua "Bearer "**, cole apenas o token puro
+6. **Clique em "Authorize"**: No modal que abriu
+7. **Feche o modal**: Agora você está autenticado
+
+### Via cURL
+
+```bash
+# Substitua SEU_TOKEN_AQUI pelo token obtido no login
+curl -X POST "http://localhost:5000/api/Packing/pack-orders" \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
+  -H "Content-Type: application/json" \
+  -d '[{
+    "orderId": 1,
     "products": [
       {
-        "name": "Produto Exemplo",
-        "height": 8,
-        "width": 12,
-        "length": 16
+        "name": "Produto Teste",
+        "height": 10,
+        "width": 15,
+        "length": 20
+      }
+    ]
+  }]'
+```
+
+### ⚠️ Importante sobre Tokens
+
+- **No Swagger**: Cole **APENAS o token**, sem "Bearer "
+- **No cURL/Postman**: Use **"Bearer " + token**
+- **Expiração**: Tokens expiram em 24 horas por padrão
+- **Renovação**: Faça login novamente para obter um novo token
+
+## 📚 Guia de Uso da API
+
+### 1. Autenticação (Endpoints Públicos)
+
+#### Registrar Usuário
+
+```http
+POST /api/Auth/register
+Content-Type: application/json
+
+{
+  "username": "meuusuario",
+  "email": "usuario@email.com",
+  "password": "minhasenha123"
+}
+```
+
+**Resposta:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "username": "meuusuario",
+  "email": "usuario@email.com",
+  "expiresAt": "2025-05-31T15:30:00Z"
+}
+```
+
+#### Fazer Login
+
+```http
+POST /api/Auth/login
+Content-Type: application/json
+
+{
+  "username": "meuusuario",
+  "password": "minhasenha123"
+}
+```
+
+**Resposta:** (mesmo formato do registro)
+
+### 2. Empacotamento (Endpoint Protegido)
+
+#### Processar Pedidos
+
+```http
+POST /api/Packing/pack-orders
+Authorization: Bearer SEU_TOKEN_AQUI
+Content-Type: application/json
+
+[
+  {
+    "orderId": 123,
+    "products": [
+      {
+        "name": "Smartphone",
+        "height": 15,
+        "width": 8,
+        "length": 2
       },
       {
-        "name": "Outro Produto",
-        "height": 5,
-        "width": 10,
-        "length": 15
+        "name": "Carregador",
+        "height": 10,
+        "width": 5,
+        "length": 3
       }
     ]
   }
 ]
 ```
 
-### Exemplo de Resposta
+**Resposta:**
 
 ```json
 [
   {
-    "order_id": 2,
+    "order_id": 123,
     "boxes": [
       {
-        "box_id": "Caixa M",
-        "products": ["Produto Exemplo", "Outro Produto"],
+        "box_id": "Caixa 1",
+        "products": ["Smartphone", "Carregador"],
         "observation": null
       }
     ]
   }
 ]
 ```
+
+## Estrutura Atualizada do Banco de Dados
+
+A aplicação agora cria automaticamente as seguintes tabelas:
+
+### Users (Nova!)
+
+- `Id` (PK) - ID único do usuário
+- `Username` - Nome de usuário único
+- `Email` - Email único do usuário
+- `PasswordHash` - Hash BCrypt da senha
+- `CreatedAt` - Data de criação do usuário
+- `IsActive` - Status ativo do usuário
 
 ## Estrutura do Banco de Dados
 
@@ -167,15 +302,31 @@ A aplicação cria automaticamente as seguintes tabelas:
 ### Variáveis de Ambiente (docker-compose.yml)
 
 ```yaml
+# SQL Server
 SA_PASSWORD: "Your_password123"
 ACCEPT_EULA: "Y"
+
+# Connection String da API
 ConnectionStrings__DefaultConnection: "Server=sqlserver,14330;Database=PackingDb;User ID=sa;Password=Your_password123;TrustServerCertificate=true"
+
+# JWT Configuration (opcional - valores padrão já configurados)
+Jwt__Key: "SuperSecretKeyWithAtLeast32Characters123!"
+Jwt__Issuer: "PackingService.Api"
+Jwt__Audience: "PackingService.Api"
 ```
+
+### Configurações de Segurança JWT
+
+- **Chave JWT**: Configurada por padrão, pode ser sobrescrita via variável de ambiente
+- **Expiração**: 24 horas por padrão
+- **Algoritmo**: HMAC SHA-256
+- **Claims incluídos**: Username, Email, Sub, Jti, Iat
 
 ### Portas Utilizadas
 
 - **API**: 5000 (HTTP)
 - **SQL Server**: 14330 (mapeada externamente)
+- **Swagger UI**: 5000/swagger
 
 ## Comandos Úteis
 
@@ -270,12 +421,33 @@ docker-compose down -v
 docker-compose up --build
 ```
 
-### Limpar Cache do Docker
+### Problemas de Autenticação JWT
+
+#### Erro 401 "Unauthorized" no Swagger
+
+1. **Verifique se fez login**: Use `/api/Auth/login` primeiro
+2. **Copie apenas o token**: Não inclua "Bearer " no Swagger
+3. **Token expirado**: Faça login novamente se passou de 24h
+4. **Clique em "Authorize"**: Botão verde no topo do Swagger
+
+#### Erro "The signature key was not found"
 
 ```bash
-docker system prune -a
-docker volume prune
+# Reinicie a aplicação para recarregar as configurações JWT
+docker-compose restart packingservice
 ```
+
+#### Token não funciona em cURL/Postman
+
+```bash
+# Certifique-se de incluir "Bearer " no header Authorization
+curl -H "Authorization: Bearer SEU_TOKEN" ...
+```
+
+#### Usuário já existe
+
+- **Problema**: Tentativa de registrar username/email duplicado
+- **Solução**: Use um username/email diferente ou faça login com as credenciais existentes
 
 ## Monitoramento e Logs
 
@@ -341,6 +513,46 @@ flowchart TD
     style S fill:#e1f5fe
 ```
 
+### Fluxo de Autenticação JWT
+
+```mermaid
+flowchart TD
+    A[Cliente] -->|POST /api/Auth/register| B[AuthController]
+    A -->|POST /api/Auth/login| B
+
+    B --> C{Endpoint}
+    C -->|Register| D[AuthService.RegisterAsync]
+    C -->|Login| E[AuthService.LoginAsync]
+
+    D --> F[Validar dados únicos]
+    F --> G[Hash senha com BCrypt]
+    G --> H[Salvar usuário no BD]
+    H --> I[Gerar Token JWT]
+
+    E --> J[Buscar usuário no BD]
+    J --> K[Verificar senha com BCrypt]
+    K --> L{Senha válida?}
+    L -->|Sim| I
+    L -->|Não| M[Retornar 401]
+
+    I --> N[Retornar token + dados]
+    N --> O[Cliente armazena token]
+
+    O --> P[Requisição a endpoint protegido]
+    P --> Q[JWT Middleware]
+    Q --> R[Validar token]
+    R --> S{Token válido?}
+    S -->|Sim| T[Permitir acesso]
+    S -->|Não| U[Retornar 401]
+
+    T --> V[PackingController]
+
+    style A fill:#e1f5fe
+    style I fill:#fff3e0
+    style Q fill:#ffebee
+    style V fill:#e8f5e8
+```
+
 ### Comunicação com Banco de Dados
 
 ```mermaid
@@ -397,6 +609,15 @@ sequenceDiagram
 
 ```mermaid
 erDiagram
+    Users {
+        int Id PK
+        string Username "UNIQUE"
+        string Email "UNIQUE"
+        string PasswordHash
+        datetime CreatedAt
+        bool IsActive
+    }
+
     Orders ||--o{ OrderItems : contains
     Orders ||--o{ OrderBoxes : uses
     Products ||--o{ OrderItems : referenced_by
@@ -427,6 +648,15 @@ erDiagram
         string BoxType
         decimal Height
         decimal Width
+        decimal Length
+    }
+
+    OrderBoxes {
+        int OrderBoxId PK
+        int OrderId FK
+        int BoxId FK
+        string Observation
+    }
         decimal Length
     }
 
