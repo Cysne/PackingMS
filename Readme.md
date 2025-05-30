@@ -772,7 +772,7 @@ PackingService.Api/
 
 ## Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
+Veja o arquivo LICENSE para mais detalhes.
 
 ---
 
