@@ -758,21 +758,21 @@ graph TB
 
 ### Estrutura do Projeto
 
-```
+```plaintext
 PackingService.Api/
-├── Controller/          # Controllers da API
-├── Data/               # Contexto do Entity Framework
-├── DTOs/               # Data Transfer Objects
-├── Entities/           # Entidades do banco de dados
-├── Migrations/         # Migrações do Entity Framework
-├── Services/           # Lógica de negócio
-├── Strategies/         # Algoritmos de empacotamento
-└── Tests/              # Testes automatizados
+├── PackingService.Api/
+│   ├── Controllers/      # Controllers da API
+│   ├── Data/             # Contexto do Entity Framework
+│   ├── DTOs/             # Data Transfer Objects
+│   ├── Entities/         # Entidades do banco de dados
+│   ├── Migrations/       # Migrações do Entity Framework
+│   ├── Middleware/       # Middlewares customizados (ex: ExceptionMiddleware)
+│   ├── Properties/       # Configurações do projeto (ex: launchSettings.json)
+│   ├── Services/         # Lógica de negócio
+│   ├── strategies/       # Algoritmos de empacotamento
+│   └── ...               # Outros arquivos e pastas
+├── PackingService.Api.Tests/ # Testes automatizados (unitários e integração)
+└── docker-compose.yml    # Orquestração Docker
 ```
-
-## Licença
-
-Veja o arquivo LICENSE para mais detalhes.
 
 ---
-
