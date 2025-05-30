@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer;
 using PackingService.Api.Entities;
+
+
 namespace PackingService.Api.Data
 {
-
-
     public class PackingDbContext : DbContext
     {
         public DbSet<BoxEntity> Boxes { get; set; }
@@ -12,6 +12,7 @@ namespace PackingService.Api.Data
         public DbSet<OrderEntity> Orders { get; set; }
         public DbSet<OrderItemEntity> OrderItems { get; set; }
         public DbSet<OrderBoxEntity> OrderBoxes { get; set; }
+        public DbSet<User> Users { get; set; }
 
         public PackingDbContext(DbContextOptions<PackingDbContext> options) : base(options)
         {
@@ -48,6 +49,16 @@ namespace PackingService.Api.Data
                 .HasOne(ob => ob.Box)
                 .WithMany(b => b.OrderBoxes)
                 .HasForeignKey(ob => ob.BoxId);
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Username).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
+                entity.Property(e => e.PasswordHash).IsRequired();
+                entity.HasIndex(e => e.Email).IsUnique();
+                entity.HasIndex(e => e.Username).IsUnique();
+            });
         }
 
         public void SeedData()
@@ -85,6 +96,20 @@ namespace PackingService.Api.Data
                     }
                 };
                 Orders.Add(order);
+                SaveChanges();
+            }
+
+            if (!Users.Any())
+            {
+                var adminUser = new User
+                {
+                    Username = "admin",
+                    Email = "admin@test.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true
+                };
+                Users.Add(adminUser);
                 SaveChanges();
             }
         }
