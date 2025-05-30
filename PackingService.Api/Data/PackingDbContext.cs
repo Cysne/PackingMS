@@ -20,7 +20,6 @@ namespace PackingService.Api.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configuração da entidade BoxEntity
             modelBuilder.Entity<BoxEntity>().HasKey(b => b.BoxId);
             modelBuilder.Entity<BoxEntity>()
                 .Property(b => b.Height)
@@ -32,7 +31,6 @@ namespace PackingService.Api.Data
                 .Property(b => b.Length)
                 .HasPrecision(18, 2);
 
-            // Configuração da entidade ProductEntity
             modelBuilder.Entity<ProductEntity>().HasKey(p => p.ProductId);
             modelBuilder.Entity<ProductEntity>()
                 .Property(p => p.Height)
@@ -53,6 +51,11 @@ namespace PackingService.Api.Data
                 .HasMany(o => o.OrderBoxes)
                 .WithOne(ob => ob.Order)
                 .HasForeignKey(ob => ob.OrderId);
+            modelBuilder.Entity<OrderEntity>()
+                .HasOne(o => o.User)
+                .WithMany()
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<OrderItemEntity>().HasKey(oi => oi.OrderItemId);
             modelBuilder.Entity<OrderItemEntity>()
@@ -72,7 +75,7 @@ namespace PackingService.Api.Data
 
             modelBuilder.Entity<User>(entity =>
             {
-                entity.HasKey(e => e.Id);
+                entity.HasKey(e => e.UserId);
                 entity.Property(e => e.Username).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.PasswordHash).IsRequired();
@@ -104,21 +107,6 @@ namespace PackingService.Api.Data
                 SaveChanges();
             }
 
-            if (!Orders.Any())
-            {
-                var productA = Products.First();
-                var order = new OrderEntity
-                {
-                    OrderDate = DateTime.UtcNow,
-                    OrderItems = new List<OrderItemEntity>
-                    {
-                        new OrderItemEntity { ProductId = productA.ProductId, Quantity = 2 }
-                    }
-                };
-                Orders.Add(order);
-                SaveChanges();
-            }
-
             if (!Users.Any())
             {
                 var adminUser = new User
@@ -130,6 +118,38 @@ namespace PackingService.Api.Data
                     IsActive = true
                 };
                 Users.Add(adminUser);
+                SaveChanges();
+                adminUser = Users.First(u => u.Username == "admin");
+                if (!Orders.Any())
+                {
+                    var productA = Products.First();
+                    var order = new OrderEntity
+                    {
+                        OrderDate = DateTime.UtcNow,
+                        UserId = adminUser.UserId,
+                        OrderItems = new List<OrderItemEntity>
+                        {
+                            new OrderItemEntity { ProductId = productA.ProductId, Quantity = 2 }
+                        }
+                    };
+                    Orders.Add(order);
+                    SaveChanges();
+                }
+            }
+            else if (!Orders.Any())
+            {
+                var productA = Products.First();
+                var adminUser = Users.First(u => u.Username == "admin");
+                var order = new OrderEntity
+                {
+                    OrderDate = DateTime.UtcNow,
+                    UserId = adminUser.UserId,
+                    OrderItems = new List<OrderItemEntity>
+                    {
+                        new OrderItemEntity { ProductId = productA.ProductId, Quantity = 2 }
+                    }
+                };
+                Orders.Add(order);
                 SaveChanges();
             }
         }
