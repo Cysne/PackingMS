@@ -2,7 +2,7 @@
 
 ## Descrição
 
-O PackingService API é um microserviço desenvolvido em .NET 8 que automatiza o processo de empacotamento de pedidos com sistema de autenticação JWT integrado. A aplicação recebe uma lista de pedidos com produtos e suas dimensões, calcula a melhor forma de acomodá-los nas caixas disponíveis e persiste todas as informações no banco de dados SQL Server.
+O PackingService API é um microserviço desenvolvido em .NET 9 que automatiza o processo de empacotamento de pedidos com sistema de autenticação JWT integrado. A aplicação recebe uma lista de pedidos com produtos e suas dimensões, calcula a melhor forma de acomodá-los nas caixas disponíveis e persiste todas as informações no banco de dados SQL Server.
 
 ## Funcionalidades
 
