@@ -303,6 +303,227 @@ docker exec -it packingservice bash
 docker exec -it sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Your_password123" -C
 ```
 
+## Arquitetura e Fluxos
+
+### Fluxo Principal da Aplicação
+
+```mermaid
+flowchart TD
+    A[Cliente HTTP] -->|POST /api/packing/pack-orders| B[PackingController]
+    B --> C[PackingService]
+    C --> D{Validar Produtos}
+    D -->|Válido| E[FirstFitDecreasingStrategy]
+    D -->|Inválido| F[Retornar Erro]
+
+    E --> G[Calcular Empacotamento]
+    G --> H[Algoritmo First-Fit Decreasing]
+    H --> I[Resultado do Empacotamento]
+
+    I --> J[Persistir no Banco]
+    J --> K[Criar OrderEntity]
+    K --> L[Salvar/Buscar Produtos]
+    L --> M[Criar OrderItems]
+    M --> N[Salvar Pedido]
+    N --> O[Criar OrderBoxes]
+    O --> P[Commit Transaction]
+
+    P --> Q[Montar Resposta]
+    Q --> R[Retornar JSON]
+    R --> S[Cliente recebe resultado]
+
+    F --> S
+
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#fff3e0
+    style E fill:#e8f5e8
+    style J fill:#fff8e1
+    style S fill:#e1f5fe
+```
+
+### Comunicação com Banco de Dados
+
+```mermaid
+sequenceDiagram
+    participant API as PackingService
+    participant EF as Entity Framework
+    participant DB as SQL Server
+
+    Note over API, DB: Fluxo de Empacotamento com Persistência
+
+    API->>EF: Iniciar Transação
+    EF->>DB: BEGIN TRANSACTION
+
+    loop Para cada Produto
+        API->>EF: Verificar se produto existe
+        EF->>DB: SELECT * FROM Products WHERE Name=? AND Height=? AND Width=? AND Length=?
+
+        alt Produto não existe
+            EF->>DB: INSERT INTO Products
+            DB-->>EF: ProductId gerado
+        else Produto existe
+            DB-->>EF: ProductId existente
+        end
+
+        EF-->>API: ProductId
+    end
+
+    API->>EF: Criar OrderEntity
+    EF->>DB: INSERT INTO Orders (OrderDate)
+    DB-->>EF: OrderId gerado
+
+    loop Para cada Produto do Pedido
+        API->>EF: Criar OrderItem
+        EF->>DB: INSERT INTO OrderItems (OrderId, ProductId, Quantity)
+    end
+
+    loop Para cada Caixa Utilizada
+        API->>EF: Buscar BoxEntity
+        EF->>DB: SELECT * FROM Boxes WHERE BoxType=?
+        DB-->>EF: BoxId
+
+        API->>EF: Criar OrderBox
+        EF->>DB: INSERT INTO OrderBoxes (OrderId, BoxId, Observation)
+    end
+
+    API->>EF: Commit Transação
+    EF->>DB: COMMIT TRANSACTION
+
+    DB-->>EF: Sucesso
+    EF-->>API: Dados persistidos
+```
+
+### Modelo de Dados (Relacionamentos)
+
+```mermaid
+erDiagram
+    Orders ||--o{ OrderItems : contains
+    Orders ||--o{ OrderBoxes : uses
+    Products ||--o{ OrderItems : referenced_by
+    Boxes ||--o{ OrderBoxes : referenced_by
+
+    Orders {
+        int OrderId PK
+        datetime OrderDate
+    }
+
+    Products {
+        int ProductId PK
+        string Name
+        decimal Height
+        decimal Width
+        decimal Length
+    }
+
+    OrderItems {
+        int OrderItemId PK
+        int OrderId FK
+        int ProductId FK
+        int Quantity
+    }
+
+    Boxes {
+        int BoxId PK
+        string BoxType
+        decimal Height
+        decimal Width
+        decimal Length
+    }
+
+    OrderBoxes {
+        int OrderBoxId PK
+        int OrderId FK
+        int BoxId FK
+        string Observation
+    }
+```
+
+### Fluxo de Estados da Aplicação
+
+```mermaid
+stateDiagram-v2
+    [*] --> Inicializando
+    Inicializando --> Aguardando_Requisicao : Docker containers prontos
+
+    Aguardando_Requisicao --> Validando_Request : POST /pack-orders
+    Validando_Request --> Processando_Empacotamento : Dados válidos
+    Validando_Request --> Erro_Validacao : Dados inválidos
+
+    Processando_Empacotamento --> Calculando_Algoritmo : Produtos validados
+    Calculando_Algoritmo --> Persistindo_Dados : Empacotamento calculado
+
+    Persistindo_Dados --> Salvando_Produtos : Transação iniciada
+    Salvando_Produtos --> Salvando_Pedido : Produtos processados
+    Salvando_Pedido --> Salvando_OrderItems : Pedido salvo
+    Salvando_OrderItems --> Salvando_OrderBoxes : Items salvos
+    Salvando_OrderBoxes --> Commit_Transacao : Boxes salvas
+
+    Commit_Transacao --> Montando_Resposta : Dados persistidos
+    Montando_Resposta --> Retornando_Resultado : Resposta montada
+
+    Retornando_Resultado --> Aguardando_Requisicao : Response enviado
+    Erro_Validacao --> Aguardando_Requisicao : Erro retornado
+
+    Persistindo_Dados --> Erro_Banco : Falha na persistência
+    Erro_Banco --> Retorno_Sem_Persistencia : Rollback automático
+    Retorno_Sem_Persistencia --> Aguardando_Requisicao : OrderId = 0
+```
+
+### Arquitetura de Camadas
+
+```mermaid
+graph TB
+    subgraph "Camada de Apresentação"
+        A[PackingController]
+        B[Swagger UI]
+        C[HTTP Endpoints]
+    end
+
+    subgraph "Camada de Aplicação"
+        D[PackingService]
+        E[DTOs]
+        F[Middleware]
+    end
+
+    subgraph "Camada de Domínio"
+        G[IPackingStrategy]
+        H[FirstFitDecreasingStrategy]
+        I[Algoritmos de Empacotamento]
+    end
+
+    subgraph "Camada de Persistência"
+        J[PackingDbContext]
+        K[Entity Framework Core]
+        L[Migrations]
+    end
+
+    subgraph "Camada de Dados"
+        M[SQL Server]
+        N[Tables]
+        O[Indexes]
+    end
+
+    A --> D
+    B --> C
+    C --> A
+    D --> E
+    D --> G
+    G --> H
+    H --> I
+    D --> J
+    J --> K
+    K --> L
+    K --> M
+    M --> N
+    N --> O
+
+    style A fill:#e3f2fd
+    style D fill:#f1f8e9
+    style G fill:#fff3e0
+    style J fill:#fce4ec
+    style M fill:#f3e5f5
+```
+
 ## Recursos Adicionais
 
 ### Swagger UI
