@@ -18,8 +18,8 @@ public class PackingApiIntegrationTestsPlaceholder
     [Fact]
     public void IntegrationTests_ArePending()
     {
-        // indicar que os testes de integração estão pendentes
-        // devido a conflitos de configuração do Entity Framework
+        // fazer depois os testes de integração
+        // devido a conflitos de configuração do Entity Framework teve erros
         true.Should().BeTrue("Integration tests are pending due to EF configuration conflicts");
     }
 }
