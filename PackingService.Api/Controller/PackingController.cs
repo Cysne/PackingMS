@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.AspNetCore.Authorization;
 using PackingService.Api.DTOs;
 using PackingService.Api.Services;
 using Microsoft.Extensions.Logging;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 
