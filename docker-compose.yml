@@ -25,6 +25,11 @@ services:
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "http://+:80"
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=PackingDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;"
+      # JWT Configuration
+      JwtSettings__SecretKey: "SuperSecretKeyWithAtLeast32Characters123!"
+      JwtSettings__Issuer: "PackingService.Api"
+      JwtSettings__Audience: "PackingService.Api"
+      JwtSettings__ExpiryHours: "24"
     ports:
       - "5000:80"
     depends_on:

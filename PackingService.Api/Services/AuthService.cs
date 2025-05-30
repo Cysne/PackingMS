@@ -32,13 +32,14 @@ namespace PackingService.Api.Services
             }
 
             var token = GenerateJwtToken(user.Username, user.Email);
+            var expiryHours = int.Parse(_configuration["JwtSettings:ExpiryHours"] ?? _configuration["Jwt:ExpiryHours"] ?? "24");
 
             return new AuthResponseDTO
             {
                 Token = token,
                 Username = user.Username,
                 Email = user.Email,
-                ExpiresAt = DateTime.UtcNow.AddHours(24)
+                ExpiresAt = DateTime.UtcNow.AddHours(expiryHours)
             };
         }
 
@@ -67,21 +68,24 @@ namespace PackingService.Api.Services
             await _context.SaveChangesAsync();
 
             var token = GenerateJwtToken(user.Username, user.Email);
+            var expiryHours = int.Parse(_configuration["JwtSettings:ExpiryHours"] ?? _configuration["Jwt:ExpiryHours"] ?? "24");
 
             return new AuthResponseDTO
             {
                 Token = token,
                 Username = user.Username,
                 Email = user.Email,
-                ExpiresAt = DateTime.UtcNow.AddHours(24)
+                ExpiresAt = DateTime.UtcNow.AddHours(expiryHours)
             };
         }
 
         public string GenerateJwtToken(string username, string email)
         {
-            var jwtKey = _configuration["Jwt:Key"] ?? "SuperSecretKeyWithAtLeast32Characters123!";
-            var jwtIssuer = _configuration["Jwt:Issuer"] ?? "PackingService.Api";
-            var jwtAudience = _configuration["Jwt:Audience"] ?? "PackingService.Api";
+            // Configuração JWT padronizada usando IConfiguration
+            var jwtKey = _configuration["JwtSettings:SecretKey"] ?? _configuration["Jwt:Key"] ?? "SuperSecretKeyWithAtLeast32Characters123!";
+            var jwtIssuer = _configuration["JwtSettings:Issuer"] ?? _configuration["Jwt:Issuer"] ?? "PackingService.Api";
+            var jwtAudience = _configuration["JwtSettings:Audience"] ?? _configuration["Jwt:Audience"] ?? "PackingService.Api";
+            var expiryHours = int.Parse(_configuration["JwtSettings:ExpiryHours"] ?? _configuration["Jwt:ExpiryHours"] ?? "24");
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -99,7 +103,7 @@ namespace PackingService.Api.Services
                 issuer: jwtIssuer,
                 audience: jwtAudience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(24),
+                expires: DateTime.UtcNow.AddHours(expiryHours),
                 signingCredentials: credentials
             );
 

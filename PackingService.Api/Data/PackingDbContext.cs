@@ -20,9 +20,29 @@ namespace PackingService.Api.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Configuração da entidade BoxEntity
             modelBuilder.Entity<BoxEntity>().HasKey(b => b.BoxId);
+            modelBuilder.Entity<BoxEntity>()
+                .Property(b => b.Height)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<BoxEntity>()
+                .Property(b => b.Width)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<BoxEntity>()
+                .Property(b => b.Length)
+                .HasPrecision(18, 2);
 
+            // Configuração da entidade ProductEntity
             modelBuilder.Entity<ProductEntity>().HasKey(p => p.ProductId);
+            modelBuilder.Entity<ProductEntity>()
+                .Property(p => p.Height)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<ProductEntity>()
+                .Property(p => p.Width)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<ProductEntity>()
+                .Property(p => p.Length)
+                .HasPrecision(18, 2);
 
             modelBuilder.Entity<OrderEntity>().HasKey(o => o.OrderId);
             modelBuilder.Entity<OrderEntity>()

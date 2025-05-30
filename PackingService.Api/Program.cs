@@ -12,7 +12,14 @@ using System.Text;
 
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.File("../logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    .WriteTo.File("../logs/log-.txt",
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +30,11 @@ builder.Host.UseSerilog();
 builder.Services.AddDbContext<PackingDbContext>(opts =>
     opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "SuperSecretKeyWithAtLeast32Characters123!";
+// Configuração JWT padronizada usando IConfiguration
+var jwtKey = builder.Configuration["JwtSettings:SecretKey"] ?? builder.Configuration["Jwt:Key"] ?? "SuperSecretKeyWithAtLeast32Characters123!";
+var jwtIssuer = builder.Configuration["JwtSettings:Issuer"] ?? builder.Configuration["Jwt:Issuer"] ?? "PackingService.Api";
+var jwtAudience = builder.Configuration["JwtSettings:Audience"] ?? builder.Configuration["Jwt:Audience"] ?? "PackingService.Api";
+
 var key = Encoding.UTF8.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(options =>
@@ -37,8 +48,10 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false,
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
