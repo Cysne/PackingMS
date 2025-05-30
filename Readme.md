@@ -46,7 +46,7 @@ O PackingService API é um microserviço desenvolvido em .NET 9 que automatiza o
 
 ## Tecnologias Utilizadas
 
-- **.NET 8** - Framework principal
+- **.NET 9** - Framework principal
 - **SQL Server 2022** - Banco de dados
 - **Entity Framework Core** - ORM para acesso aos dados
 - **JWT Bearer Authentication** - Sistema de autenticação
@@ -648,15 +648,6 @@ erDiagram
         string BoxType
         decimal Height
         decimal Width
-        decimal Length
-    }
-
-    OrderBoxes {
-        int OrderBoxId PK
-        int OrderId FK
-        int BoxId FK
-        string Observation
-    }
         decimal Length
     }
 
