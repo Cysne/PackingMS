@@ -2,6 +2,7 @@ using Serilog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using PackingService.Api.Data;
+using Microsoft.EntityFrameworkCore.InMemory;
 using PackingService.Api.DTOs;
 using PackingService.Api.Services;
 using PackingService.Api.Strategies;
@@ -29,7 +30,6 @@ builder.Host.UseSerilog();
 
 builder.Services.AddDbContext<PackingDbContext>(opts =>
 {
-    // Use InMemory database for development if SQL Server is not available
     if (builder.Environment.IsDevelopment())
     {
         opts.UseInMemoryDatabase("PackingDb");
