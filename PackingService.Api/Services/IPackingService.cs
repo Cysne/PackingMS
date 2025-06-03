@@ -5,6 +5,6 @@ namespace PackingService.Api.Services
 {
     public interface IPackingService
     {
-        List<OrderPackingResultDTO> PackOrders(IEnumerable<OrderDTO> orders);
+        List<OrderPackingResultDTO> PackOrders(IEnumerable<OrderDTO> orders, int userId);
     }
 }

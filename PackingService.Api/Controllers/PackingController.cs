@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using PackingService.Api.DTOs;
@@ -56,12 +57,29 @@ public class PackingController : ControllerBase
             }
             _logger.LogInformation(" Pedido {OrderId} validado com sucesso - {ProductCount} produtos", order.OrderId, order.Products.Count);
         }
-
         try
         {
-            _logger.LogInformation("Iniciando empacotamento dos pedidos...");
-            var result = _packingService.PackOrders(orders);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                _logger.LogWarning("Usuário não autenticado ou ID inválido");
+                return Unauthorized("Usuário não autenticado ou ID inválido.");
+            }
+            _logger.LogInformation("Iniciando empacotamento dos pedidos para o usuário {UserId}...", userId);
+            var result = _packingService.PackOrders(orders, userId);
             _logger.LogInformation("Empacotamento concluído com sucesso - {ResultCount} resultados gerados", result.Count);
+
+            var hasFailures = result.Any(r => r.order_id == 0);
+
+            if (hasFailures)
+            {
+                var successCount = result.Count(r => r.order_id > 0);
+                var failureCount = result.Count(r => r.order_id == 0);
+                _logger.LogWarning("Processamento parcial: {SuccessCount} sucessos, {FailureCount} falhas", successCount, failureCount);
+                return StatusCode(207, result);
+            }
+
+            _logger.LogInformation("Todos os pedidos processados com sucesso");
             return Ok(result);
         }
         catch (Exception ex)

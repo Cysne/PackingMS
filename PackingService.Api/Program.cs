@@ -28,7 +28,17 @@ builder.Host.UseSerilog();
 
 
 builder.Services.AddDbContext<PackingDbContext>(opts =>
-    opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    // Use InMemory database for development if SQL Server is not available
+    if (builder.Environment.IsDevelopment())
+    {
+        opts.UseInMemoryDatabase("PackingDb");
+    }
+    else
+    {
+        opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    }
+});
 
 // Configuração JWT padronizada usando IConfiguration
 var jwtKey = builder.Configuration["JwtSettings:SecretKey"] ?? builder.Configuration["Jwt:Key"] ?? "SuperSecretKeyWithAtLeast32Characters123!";
@@ -60,12 +70,6 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IPackingService, PackingService.Api.Services.PackingService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IPackingStrategy, FirstFitDecreasingPackingStrategy>();
-builder.Services.AddSingleton<IEnumerable<BoxDTO>>(sp => new[]
-{
-    new BoxDTO { BoxType = "Caixa 1", Height = 30m, Width = 40m, Length = 80m },
-    new BoxDTO { BoxType = "Caixa 2", Height = 80m, Width = 50m, Length = 40m },
-    new BoxDTO { BoxType = "Caixa 3", Height = 50m, Width = 80m, Length = 60m }
-});
 
 
 builder.Services.AddControllers();
@@ -107,7 +111,18 @@ app.UseMiddleware<PackingService.Api.Middleware.ExceptionMiddleware>();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<PackingDbContext>();
-    db.Database.Migrate();
+    
+    // Apply migrations only for SQL Server (not for InMemory)
+    if (db.Database.GetDbConnection().GetType().Name != "InMemoryDatabaseConnection")
+    {
+        db.Database.Migrate();
+    }
+    else
+    {
+        // For InMemory database, ensure database is created
+        db.Database.EnsureCreated();
+    }
+    
     db.SeedData();
 }
 
