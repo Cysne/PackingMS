@@ -6,6 +6,6 @@ namespace PackingService.Api.Services
     {
         Task<AuthResponseDTO> LoginAsync(LoginRequestDTO request);
         Task<AuthResponseDTO> RegisterAsync(RegisterRequestDTO request);
-        string GenerateJwtToken(string username, string email);
+        string GenerateJwtToken(int userId, string username, string email);
     }
 }
