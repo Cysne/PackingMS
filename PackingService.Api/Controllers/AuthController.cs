@@ -50,7 +50,7 @@ namespace PackingService.Api.Controllers
             {
                 var response = await _authService.RegisterAsync(request);
                 _logger.LogInformation("Usuário {Username} registrado com sucesso", request.Username);
-                return CreatedAtAction(nameof(Register), response);
+                return Ok(response);
             }
             catch (InvalidOperationException ex)
             {
