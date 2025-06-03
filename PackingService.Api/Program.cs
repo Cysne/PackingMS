@@ -9,6 +9,7 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Security.Claims;
 
 
 Log.Logger = new LoggerConfiguration()
@@ -62,7 +63,25 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidAudience = jwtAudience,
         ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
+        ClockSkew = TimeSpan.Zero,
+        NameClaimType = ClaimTypes.Name,
+        RoleClaimType = ClaimTypes.Role
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = context =>
+        {
+            var claimsIdentity = context.Principal?.Identity as ClaimsIdentity;
+            if (claimsIdentity != null)
+            {
+                var nameIdClaim = claimsIdentity.FindFirst("nameid");
+                if (nameIdClaim != null && claimsIdentity.FindFirst(ClaimTypes.NameIdentifier) == null)
+                {
+                    claimsIdentity.AddClaim(new Claim(ClaimTypes.NameIdentifier, nameIdClaim.Value));
+                }
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
