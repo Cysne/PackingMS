@@ -598,7 +598,7 @@ sequenceDiagram
 ```mermaid
 erDiagram
     Users {
-        int Id PK
+        int UserId PK
         string Username "UNIQUE"
         string Email "UNIQUE"
         string PasswordHash
@@ -606,15 +606,17 @@ erDiagram
         bool IsActive
     }
 
-    Orders ||--o{ OrderItems : contains
-    Orders ||--o{ OrderBoxes : uses
-    Products ||--o{ OrderItems : referenced_by
-    Boxes ||--o{ OrderBoxes : referenced_by
-
     Orders {
         int OrderId PK
         datetime OrderDate
+        int UserId FK
     }
+
+    Orders ||--o{ OrderItems : contains
+    Orders ||--o{ OrderBoxes : uses
+    Orders }|--|| Users : "pertence a"
+    Products ||--o{ OrderItems : referenced_by
+    Boxes ||--o{ OrderBoxes : referenced_by
 
     Products {
         int ProductId PK
