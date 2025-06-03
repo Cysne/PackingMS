@@ -2,7 +2,6 @@ using Serilog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using PackingService.Api.Data;
-using Microsoft.EntityFrameworkCore.InMemory;
 using PackingService.Api.DTOs;
 using PackingService.Api.Services;
 using PackingService.Api.Strategies;
@@ -69,6 +68,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<IPackingService, PackingService.Api.Services.PackingService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<PackingService.Api.Services.ITransactionService, PackingService.Api.Services.TransactionService>();
 builder.Services.AddSingleton<IPackingStrategy, FirstFitDecreasingPackingStrategy>();
 
 
@@ -111,18 +111,16 @@ app.UseMiddleware<PackingService.Api.Middleware.ExceptionMiddleware>();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<PackingDbContext>();
-    
-    // Apply migrations only for SQL Server (not for InMemory)
-    if (db.Database.GetDbConnection().GetType().Name != "InMemoryDatabaseConnection")
+
+    if (db.Database.IsRelational())
     {
         db.Database.Migrate();
     }
     else
     {
-        // For InMemory database, ensure database is created
         db.Database.EnsureCreated();
     }
-    
+
     db.SeedData();
 }
 
