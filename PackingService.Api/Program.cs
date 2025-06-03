@@ -9,6 +9,7 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Security.Claims;
 
 
 Log.Logger = new LoggerConfiguration()
@@ -28,7 +29,16 @@ builder.Host.UseSerilog();
 
 
 builder.Services.AddDbContext<PackingDbContext>(opts =>
-    opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        opts.UseInMemoryDatabase("PackingDb");
+    }
+    else
+    {
+        opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    }
+});
 
 // Configuração JWT padronizada usando IConfiguration
 var jwtKey = builder.Configuration["JwtSettings:SecretKey"] ?? builder.Configuration["Jwt:Key"] ?? "SuperSecretKeyWithAtLeast32Characters123!";
@@ -53,19 +63,32 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidAudience = jwtAudience,
         ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
+        ClockSkew = TimeSpan.Zero,
+        NameClaimType = ClaimTypes.Name,
+        RoleClaimType = ClaimTypes.Role
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = context =>
+        {
+            var claimsIdentity = context.Principal?.Identity as ClaimsIdentity;
+            if (claimsIdentity != null)
+            {
+                var nameIdClaim = claimsIdentity.FindFirst("nameid");
+                if (nameIdClaim != null && claimsIdentity.FindFirst(ClaimTypes.NameIdentifier) == null)
+                {
+                    claimsIdentity.AddClaim(new Claim(ClaimTypes.NameIdentifier, nameIdClaim.Value));
+                }
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
 builder.Services.AddScoped<IPackingService, PackingService.Api.Services.PackingService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<PackingService.Api.Services.ITransactionService, PackingService.Api.Services.TransactionService>();
 builder.Services.AddSingleton<IPackingStrategy, FirstFitDecreasingPackingStrategy>();
-builder.Services.AddSingleton<IEnumerable<BoxDTO>>(sp => new[]
-{
-    new BoxDTO { BoxType = "Caixa 1", Height = 30m, Width = 40m, Length = 80m },
-    new BoxDTO { BoxType = "Caixa 2", Height = 80m, Width = 50m, Length = 40m },
-    new BoxDTO { BoxType = "Caixa 3", Height = 50m, Width = 80m, Length = 60m }
-});
 
 
 builder.Services.AddControllers();
@@ -107,7 +130,16 @@ app.UseMiddleware<PackingService.Api.Middleware.ExceptionMiddleware>();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<PackingDbContext>();
-    db.Database.Migrate();
+
+    if (db.Database.IsRelational())
+    {
+        db.Database.Migrate();
+    }
+    else
+    {
+        db.Database.EnsureCreated();
+    }
+
     db.SeedData();
 }
 

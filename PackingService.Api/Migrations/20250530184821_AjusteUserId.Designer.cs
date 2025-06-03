@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PackingService.Api.Data;
 
@@ -11,9 +12,11 @@ using PackingService.Api.Data;
 namespace PackingService.Api.Migrations
 {
     [DbContext(typeof(PackingDbContext))]
-    partial class PackingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250530184821_AjusteUserId")]
+    partial class AjusteUserId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
