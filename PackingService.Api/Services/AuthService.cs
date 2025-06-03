@@ -31,7 +31,7 @@ namespace PackingService.Api.Services
                 throw new UnauthorizedAccessException("Credenciais inválidas");
             }
 
-            var token = GenerateJwtToken(user.Username, user.Email);
+            var token = GenerateJwtToken(user.UserId, user.Username, user.Email);
             var expiryHours = int.Parse(_configuration["JwtSettings:ExpiryHours"] ?? _configuration["Jwt:ExpiryHours"] ?? "24");
 
             return new AuthResponseDTO
@@ -67,7 +67,7 @@ namespace PackingService.Api.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            var token = GenerateJwtToken(user.Username, user.Email);
+            var token = GenerateJwtToken(user.UserId, user.Username, user.Email);
             var expiryHours = int.Parse(_configuration["JwtSettings:ExpiryHours"] ?? _configuration["Jwt:ExpiryHours"] ?? "24");
 
             return new AuthResponseDTO
@@ -79,7 +79,7 @@ namespace PackingService.Api.Services
             };
         }
 
-        public string GenerateJwtToken(string username, string email)
+        public string GenerateJwtToken(int userId, string username, string email)
         {
             // Configuração JWT padronizada usando IConfiguration
             var jwtKey = _configuration["JwtSettings:SecretKey"] ?? _configuration["Jwt:Key"] ?? "SuperSecretKeyWithAtLeast32Characters123!";
@@ -92,6 +92,8 @@ namespace PackingService.Api.Services
 
             var claims = new[]
             {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim("nameid", userId.ToString()),
                 new Claim(ClaimTypes.Name, username),
                 new Claim(ClaimTypes.Email, email),
                 new Claim(JwtRegisteredClaimNames.Sub, username),
